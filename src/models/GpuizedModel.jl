@@ -1,5 +1,4 @@
 export GPUModel
-using Metal
 using VLBISkyModels
 
 """
@@ -41,12 +40,12 @@ ComradeBase.intensitymap!(img::IntensityMapTypes, m, threaded::Bool) = intensity
 ComradeBase.intensitymap!(img::IntensityMapTypes, m, ::VLBISkyModels.False) = intensitymap!(img, m)
 ComradeBase.intensitymap!(img::IntensityMapTypes, m, ::VLBISkyModels.True)  = intensitymap!(img, GPUModel(m))
 
-function ComradeBase.intensitymap!(::ComradeBase.IsAnalytic, img::ComradeBase.IntensityMap, s::GPUModel)
+function ComradeBase.intensitymap_analytic!(img::ComradeBase.IntensityMap, s::GPUModel)
     dx, dy = pixelsizes(img)
     mm = Base.Fix1(ComradeBase.intensity_point, s)
-    g = MtlArray(imagegrid(img))
-    img .= mm.(g)*dx*dy
-    println("here")
+    g = CuArray(imagegrid(img)|>collect)
+    img .= Array(mm.(g)*dx*dy)
+    # println("here")
     return img
 end
 
