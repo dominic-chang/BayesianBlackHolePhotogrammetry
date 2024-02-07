@@ -1,5 +1,6 @@
 using Krang
 using VLBIImagePriors
+using ComradeBase
 
 struct JuKeBOX{T, G, M} <: ComradeBase.AbstractModel
     spin::T
@@ -83,9 +84,9 @@ ComradeBase.visanalytic(::Type{<:JuKeBOX}) = ComradeBase.NotAnalytic()
 ComradeBase.imanalytic(::Type{<:JuKeBOX}) = ComradeBase.IsAnalytic()
 ComradeBase.isprimitive(::Type{<:JuKeBOX}) = ComradeBase.IsPrimitive()
 
-function ComradeBase.intensity_point(m::JuKeBOX{T,G,M}, p) where {T,G,M}
+@inline function ComradeBase.intensity_point(m::JuKeBOX{T,G,M}, p) where {T,G,M}
     (;X, Y) = p
-    (;f,mesh) = m
+    (;mesh) = m
     pix = Krang.IntensityPixel(Krang.Kerr(m.spin), -X, Y, m.θo)
-    return f*mesh.material(pix, (mesh.geometry))
+    return mesh.material(pix, (mesh.geometry))
 end
