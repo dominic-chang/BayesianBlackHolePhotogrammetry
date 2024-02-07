@@ -1,0 +1,3 @@
+[deps]
+BayesianBlackHolePhotogrammetry = "c3bfbc03-3e50-4bdd-8fa3-595579f96982"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
