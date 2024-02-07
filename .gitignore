@@ -1,3 +1,7 @@
 /Manifest.toml
 /docs/Manifest.toml
 /docs/build/
+.CondaPkg
+.vscode
+data
+.DS_Store
