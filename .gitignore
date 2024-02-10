@@ -6,4 +6,4 @@
 data
 .DS_Store
 src/visibilityDomain/results
-*.pfd
+*.pdf
