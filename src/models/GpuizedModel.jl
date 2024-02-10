@@ -1,5 +1,7 @@
 export GPUModel
+using Metal
 using VLBISkyModels
+using ImageFiltering
 
 """
     GPUModel
@@ -13,7 +15,7 @@ end
 @inline GPUModel(model::M) where {M<:VLBISkyModels.CompositeModel} = GPUModel(ComradeBase.imanalytic(M), model)
 @inline GPUModel(::ComradeBase.IsAnalytic, model::VLBISkyModels.CompositeModel)        = GPUModel{typeof(model)}(model)
 @inline GPUModel(::ComradeBase.NotAnalytic, model::VLBISkyModels.AddModel)             = AddModel(GPUModel(model.m1), GPUModel(model.m2))
-@inline GPUModel(::ComradeBase.NotAnalytic, model::VLBISkyModels.ConvolvedModel)       = ConvolvedModel(GPUModel(model.m1), GPUModel(model.m2))
+@inline GPUModel(::ComradeBase.NotAnalytic, model::VLBISkyModels.ConvolvedModel)       = VLBISkyModels.ConvolvedModel(GPUModel(model.m1), GPUModel(model.m2))
 @inline GPUModel(model::VLBISkyModels.ModelImage) = VLBISkyModels.@set model.model = GPUModel(model.model)
 
 Base.@constprop :aggressive @inline visanalytic(::Type{<:GPUModel{M}}) where {M} = ComradeBase.visanalytic(M)
@@ -43,9 +45,8 @@ ComradeBase.intensitymap!(img::IntensityMapTypes, m, ::VLBISkyModels.True)  = in
 function ComradeBase.intensitymap_analytic!(img::ComradeBase.IntensityMap, s::GPUModel)
     dx, dy = pixelsizes(img)
     mm = Base.Fix1(ComradeBase.intensity_point, s)
-    g = CuArray(imagegrid(img)|>collect)
+    g = MtlArray(imagegrid(img)|>collect)
     img .= Array(mm.(g)*dx*dy)
-    # println("here")
     return img
 end
 
