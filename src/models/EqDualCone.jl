@@ -1,8 +1,4 @@
-using Krang
-using VLBIImagePriors
-using ComradeBase
-
-struct EqDualCone{T, G1, G2, M} <: ComradeBase.AbstractModel
+struct EqDualCone{T,G1,G2,M} <: ComradeBase.AbstractModel
     spin::T
     θo::T
     θs::T
@@ -23,8 +19,8 @@ struct EqDualCone{T, G1, G2, M} <: ComradeBase.AbstractModel
     spec_disk::T
     η_disk::T
     rJ::T
-    mesh_cone::Krang.Mesh{G1, M}
-    mesh_disk::Krang.Mesh{G2, M}
+    mesh_cone::Krang.Mesh{G1,M}
+    mesh_disk::Krang.Mesh{G2,M}
 
     function EqDualCone(
         spin::T,
@@ -48,35 +44,37 @@ struct EqDualCone{T, G1, G2, M} <: ComradeBase.AbstractModel
         η_disk::T,
         rJ::T,
         nmax::Int
-    ) where T
-        η2 = π-η_cone
-        magfield0 = Krang.SVector(sin(ι_disk)*cos(η_disk), sin(ι_disk)*sin(η_disk), cos(ι_disk));
-        magfield1 = Krang.SVector(sin(ι_cone)*cos(η_cone), sin(ι_cone)*sin(η_cone), cos(ι_cone));
-        magfield2 = Krang.SVector(sin(ι_cone)*cos(η2), sin(ι_cone)*sin(η2), cos(ι_cone));
+    ) where {T}
+        η2 = π - η_cone
+        magfield0 = Krang.SVector(sin(ι_disk) * cos(η_disk), sin(ι_disk) * sin(η_disk), cos(ι_disk))
+        magfield1 = Krang.SVector(sin(ι_cone) * cos(η_cone), sin(ι_cone) * sin(η_cone), cos(ι_cone))
+        magfield2 = Krang.SVector(sin(ι_cone) * cos(η2), sin(ι_cone) * sin(η2), cos(ι_cone))
 
-        vel_disk = Krang.SVector(βv_disk, T(π/2), χ_disk);
-        vel_cone = Krang.SVector(βv_cone, T(π/2), χ_cone);
+        vel_disk = Krang.SVector(βv_disk, T(π / 2), χ_disk)
+        vel_cone = Krang.SVector(βv_cone, T(π / 2), χ_cone)
 
-        material = Krang.ElectronSynchrotronPowerLawIntensity();
+        material = Krang.ElectronSynchrotronPowerLawIntensity()
 
         # Create the Geometry
-        profile_cone(r) = let  R = r_cone, p1 = p1_cone, p2 = p2_cone
-            ((r/R)^p1)/(1+(r/R)^(p1+p2))
-        end
-        profile_disk(r) = let  R = r_disk, p1 = p1_disk, p2 = p2_disk
-            ((r/R)^p1)/(1+(r/R)^(p1+p2))
-        end
+        profile_cone(r) =
+            let R = r_cone, p1 = p1_cone, p2 = p2_cone
+                ((r / R)^p1) / (1 + (r / R)^(p1 + p2))
+            end
+        profile_disk(r) =
+            let R = r_disk, p1 = p1_disk, p2 = p2_disk
+                ((r / R)^p1) / (1 + (r / R)^(p1 + p2))
+            end
 
         subimgs = (i for i in 0:nmax)
-        geometry0 = Krang.ConeGeometry(T(π/2), (magfield0, vel_disk, subimgs, profile_disk, spec_disk))
+        geometry0 = Krang.ConeGeometry(T(π / 2), (magfield0, vel_disk, subimgs, profile_disk, spec_disk))
         geometry1 = Krang.ConeGeometry(θs, (magfield1, vel_cone, subimgs, profile_cone, spec_cone))
-        geometry2 = Krang.ConeGeometry(π-θs, (magfield2, vel_cone, subimgs, profile_cone, spec_cone))
+        geometry2 = Krang.ConeGeometry(π - θs, (magfield2, vel_cone, subimgs, profile_cone, spec_cone))
         geometry = geometry1 ⊕ geometry2
 
         mesh_cone = Krang.Mesh(geometry, material)
         mesh_disk = Krang.Mesh(geometry0, material)
 
-        return new{T, typeof(geometry), typeof(geometry0), typeof(material)}(
+        return new{T,typeof(geometry),typeof(geometry0),typeof(material)}(
             spin,
             θo,
             θs,
@@ -155,9 +153,9 @@ ComradeBase.imanalytic(::Type{<:EqDualCone}) = ComradeBase.IsAnalytic()
 ComradeBase.isprimitive(::Type{<:EqDualCone}) = ComradeBase.IsPrimitive()
 
 @inline function ComradeBase.intensity_point(m::EqDualCone{T,G1,G2,M}, p) where {T,G1,G2,M}
-    (;X, Y) = p
-    (;rJ, mesh_cone, mesh_disk) = m
+    (; X, Y) = p
+    (; rJ, mesh_cone, mesh_disk) = m
     pix = Krang.IntensityPixel(Krang.Kerr(m.spin), -X, Y, m.θo)
-    return (one(T)-rJ)*mesh_cone.material(pix, mesh_cone.geometry) + rJ*mesh_disk.material(pix, mesh_disk.geometry)
+    return (one(T) - rJ) * mesh_cone.material(pix, mesh_cone.geometry) + rJ * mesh_disk.material(pix, mesh_disk.geometry)
 
 end

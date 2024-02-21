@@ -34,13 +34,17 @@ function ComradeBase.intensitymap_analytic(s::GPUModel, g::RectiGrid)
     return ComradeBase.intensitymap_analytic!(img, s)
 end
 
-ComradeBase.intensitymap(m, p, threaded::Bool) = intensitymap(m, p, static(threaded))
-ComradeBase.intensitymap(m, p, ::VLBISkyModels.False) = intensitymap(m, p)
-ComradeBase.intensitymap(m, p, ::VLBISkyModels.True)  = intensitymap(GPUModel(m), p)
+struct GPUize end
+ComradeBase.intensitymap(m::GPUModel, p, threaded) = intensitymap(m, p, GPUized())
+ComradeBase.intensitymap!(img::IntensityMapTypes, m, ::GPUize) = intensitymap!(img, GPUModel(m))
 
-ComradeBase.intensitymap!(img::IntensityMapTypes, m, threaded::Bool) = intensitymap!(img, m, static(threaded))
-ComradeBase.intensitymap!(img::IntensityMapTypes, m, ::VLBISkyModels.False) = intensitymap!(img, m)
-ComradeBase.intensitymap!(img::IntensityMapTypes, m, ::VLBISkyModels.True)  = intensitymap!(img, GPUModel(m))
+#ComradeBase.intensitymap(m, p, threaded::Bool) = intensitymap(m, p, static(threaded))
+#ComradeBase.intensitymap(m, p, ::VLBISkyModels.False) = intensitymap(m, p)
+#ComradeBase.intensitymap(m, p, ::VLBISkyModels.True)  = intensitymap(GPUModel(m), p)
+#
+#ComradeBase.intensitymap!(img::IntensityMapTypes, m, threaded::Bool) = intensitymap!(img, m, static(threaded))
+#ComradeBase.intensitymap!(img::IntensityMapTypes, m, ::VLBISkyModels.False) = intensitymap!(img, m)
+#ComradeBase.intensitymap!(img::IntensityMapTypes, m, ::VLBISkyModels.True)  = intensitymap!(img, GPUModel(m))
 
 function ComradeBase.intensitymap_analytic!(img::ComradeBase.IntensityMap, s::GPUModel)
     dx, dy = pixelsizes(img)

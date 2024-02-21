@@ -7,3 +7,7 @@ data
 .DS_Store
 src/visibilityDomain/results
 *.pdf
+pyvenv.cfg
+lib
+bin
+include
