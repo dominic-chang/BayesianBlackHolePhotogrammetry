@@ -11,3 +11,5 @@ pyvenv.cfg
 lib
 bin
 include
+*.png
+*.gif
