@@ -11,13 +11,8 @@ using Krang
 using VLBIImagePriors
 using ComradeBase
 using LaTeXStrings
-include(joinpath((@__DIR__), "..", "..","models", "JuKeBOX.jl"))
-include(joinpath((@__DIR__), "..", "..","models", "Equatorial.jl"))
-include(joinpath((@__DIR__), "..", "..","models", "EqDualCone.jl"))
-include(joinpath((@__DIR__), "..", "..", "models", "GpuizedModel.jl"))
-include(joinpath((@__DIR__), "..", "..", "models", "GpuizedBlurredModel.jl"))
-include(joinpath((@__DIR__), "..", "..", "models", "defaults.jl"))
-include(abspath(joinpath((@__DIR__), "..", "..", "models", "vidawrappers.jl")))
+include(joinpath((@__DIR__), "..", "..", "models", "customModels.jl"))
+
 inbase = abspath((@__DIR__), "..", "..", "data", "GRMHD")
 red_cb = colorant"rgba(84%, 11%, 38%, 1.0)";
 blue_cb = colorant"rgba(12%, 53%, 89%, 1.0)";

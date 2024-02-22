@@ -11,14 +11,8 @@ using Krang
 using VLBIImagePriors
 using ComradeBase
 using LaTeXStrings
+include(joinpath((@__DIR__), "..", "..", "models", "customModels.jl"))
 
-include(joinpath((@__DIR__), "..", "..","models", "JuKeBOX.jl"))
-include(joinpath((@__DIR__), "..", "..","models", "Equatorial.jl"))
-include(joinpath((@__DIR__), "..", "..","models", "EqDualCone.jl"))
-include(joinpath((@__DIR__), "..", "..", "models", "GpuizedModel.jl"))
-include(joinpath((@__DIR__), "..", "..", "models", "GpuizedBlurredModel.jl"))
-include(joinpath((@__DIR__), "..", "..", "models", "defaults.jl"))
-include(abspath(joinpath((@__DIR__), "..", "..", "models", "vidawrappers.jl")))
 inbase = abspath((@__DIR__), "..", "..", "data", "GRMHD")
 
 blur = μas2rad(10.0f0)
