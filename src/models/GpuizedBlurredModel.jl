@@ -61,8 +61,6 @@ function ComradeBase.intensitymap_analytic!(inimg::ComradeBase.IntensityMap, s::
     σ_px = blur / (2 * sqrt(2 * log(2f0))) / abs(dx)
     σ_py = blur / (2 * sqrt(2 * log(2f0))) / abs(dy)
 
-    # Now I need to pick my kernel size. I am going out to 5σ for the
-    # gaussian kernel. I have to add one for the convolution to play nice
     nkern = Int(floor(σ_px) * 10 + 1)
     inimg .= imfilter(parent(inimg),
         Kernel.gaussian((σ_py, σ_px), (nkern, nkern)),
