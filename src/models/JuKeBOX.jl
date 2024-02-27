@@ -15,7 +15,7 @@ struct JuKeBOX{T,G,M} <: ComradeBase.AbstractModel
     function JuKeBOX(spin::T, θo::T, θs::T, rpeak::T, p1::T, p2::T, χ::T, ι::T, βv::T, spec::T, η::T, nmax::Int) where {T}
         #η2 = π - η
         magfield1 = Krang.SVector(sin(ι) * cos(η), sin(ι) * sin(η), cos(ι))
-        magfield2 = Krang.SVector(-sin(ι) * cos(η), sin(ι) * sin(η), cos(ι))
+        magfield2 = Krang.SVector(-sin(ι) * cos(η), -sin(ι) * sin(η), cos(ι))
         vel = Krang.SVector(βv, T(π / 2), χ)
         material = Krang.ElectronSynchrotronPowerLawIntensity()
 

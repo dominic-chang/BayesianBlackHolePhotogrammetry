@@ -45,10 +45,9 @@ struct EqDualCone{T,G1,G2,M} <: ComradeBase.AbstractModel
         rJ::T,
         nmax::Int
     ) where {T}
-        η2 = π - η_cone
         magfield0 = Krang.SVector(sin(ι_disk) * cos(η_disk), sin(ι_disk) * sin(η_disk), cos(ι_disk))
         magfield1 = Krang.SVector(sin(ι_cone) * cos(η_cone), sin(ι_cone) * sin(η_cone), cos(ι_cone))
-        magfield2 = Krang.SVector(sin(ι_cone) * cos(η2), sin(ι_cone) * sin(η2), cos(ι_cone))
+        magfield2 = Krang.SVector(-sin(ι_cone) * cos(η_cone), -sin(ι_cone) * sin(η_cone), cos(ι_cone))
 
         vel_disk = Krang.SVector(βv_disk, T(π / 2), χ_disk)
         vel_cone = Krang.SVector(βv_cone, T(π / 2), χ_cone)
