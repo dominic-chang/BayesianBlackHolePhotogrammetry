@@ -106,7 +106,7 @@ end
 indir = joinpath((@__DIR__) , "..", "..","..","runs", "image_domain") |> abspath
 directory_names = filter(x -> occursin("M_a", x), readdir(indir))
 inclinations = map(x -> x[end-1:end], directory_names)
-models = ["JBOX", "Eq", "EqDualCone"]#, "EqDualConeBlur"]
+models = ["EqBlur", "JBOXBlur", "EqDualConeBlur"]#, "EqDualConeBlur"]
 
 nxcorr_vals = Dict([model => Vector{Float64}() for model in models])
 
@@ -125,12 +125,12 @@ ax = Axis(
 	xlabel = LaTeXString("Observer Inclination (\${}^\\circ\$)"),
 	xticklabelsvisible = true,
 	xticks = ([1, 2, 3, 4], ["30", "50", "70", "90"]),
-	yticks = [0.85, 0.9, 0.95, 1.0],
+	#yticks = [0.85, 0.9, 0.95, 1.0],
 	yticklabelsvisible = true,
 	xlabelsize=20
 );
 xlims!(ax, (0.5, 4.5))
-ylims!(ax, (0.84, 1.005))
+ylims!(ax, (0.9605, 1.001))
 
 colors = [red_cb, blue_cb, orange_cb]#, :blue]
 elements = [:circle, :rect, :utriangle]
