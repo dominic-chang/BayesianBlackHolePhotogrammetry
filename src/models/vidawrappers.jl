@@ -1,14 +1,14 @@
 using VLBISkyModels
 using BlackBoxOptim
 
-function Equatorial(m_d::T, spin::T, θo::T, rpeak::T, p1::T, p2::T, χ::T, ι::T, βv::T, spec::T, x0::T, y0::T) where {T}
+function Equatorial(m_d::T, spin::T, θo::T, rpeak::T, p1::T, p2::T, χ::T, ι::T, βv::T, spec::T, x0::T, y0::T, pa::T) where {T}
     return modify(Equatorial(spin, θo, rpeak, p1, p2, χ, ι, βv, spec, 2),
-        Stretch(μas2rad(m_d), μas2rad(m_d)), Shift(μas2rad(x0), μas2rad(y0)))
+        Stretch(μas2rad(m_d), μas2rad(m_d)), Shift(μas2rad(x0), μas2rad(y0)), Rotate(pa))
 end
 
-function JuKeBOX(m_d::T, spin::T, θo::T, θs::T, rpeak::T, p1::T, p2::T, χ::T, ι::T, βv::T, spec::T, η::T, x0::T, y0::T) where {T}
+function JuKeBOX(m_d::T, spin::T, θo::T, θs::T, rpeak::T, p1::T, p2::T, χ::T, ι::T, βv::T, spec::T, η::T, x0::T, y0::T, pa::T) where {T}
     return modify(JuKeBOX(spin, θo, θs, rpeak, p1, p2, χ, ι, βv, spec, η, 2),
-        Stretch(μas2rad(m_d), μas2rad(m_d)), Shift(μas2rad(x0), μas2rad(y0)))
+        Stretch(μas2rad(m_d), μas2rad(m_d)), Shift(μas2rad(x0), μas2rad(y0)), Rotate(pa))
 end
 function EqDualCone(
     m_d::T,
@@ -33,7 +33,8 @@ function EqDualCone(
     η_disk::T,
     rJ::T,
     x0::T,
-    y0::T
+    y0::T, 
+    pa::T
 ) where {T}
     return modify(EqDualCone(
             spin,
@@ -58,10 +59,10 @@ function EqDualCone(
             rJ,
             2
         ),
-        Stretch(μas2rad(m_d), μas2rad(m_d)), Shift(μas2rad(x0), μas2rad(y0)))
+        Stretch(μas2rad(m_d), μas2rad(m_d)), Shift(μas2rad(x0), μas2rad(y0)), Rotate(pa))
 end
 
-function eq_temp(θ)
+function eq_temp(θ, pa=0f0)
     return GPUModel(
         Equatorial(
             Float32(θ.m_d),
@@ -75,12 +76,13 @@ function eq_temp(θ)
             Float32(θ.βv),
             Float32(θ.σ),
             Float32(θ.x0),
-            Float32(θ.y0)
+            Float32(θ.y0),
+            Float32(pa)
         )
     )
 end
 
-function dual_cone_temp(θ)
+function dual_cone_temp(θ, pa=0f0)
     return GPUModel(
         JuKeBOX(
             Float32(θ.m_d),
@@ -96,12 +98,13 @@ function dual_cone_temp(θ)
             Float32(θ.σ),
             Float32(θ.η),
             Float32(θ.x0),
-            Float32(θ.y0)
+            Float32(θ.y0),
+            Float32(pa)
         )
     )
 end
 
-function eq_dual_cone_temp(θ)
+function eq_dual_cone_temp(θ, pa=0f0)
     return GPUModel(
         EqDualCone(
             Float32(θ.m_d),
@@ -126,13 +129,88 @@ function eq_dual_cone_temp(θ)
             Float32(θ.η_disk),
             Float32(θ.rJ),
             Float32(θ.xtrans),
-            Float32(θ.ytrans)
+            Float32(θ.ytrans),
+            Float32(pa)
+        )
+    )
+end
+
+function eq_temp_threaded(θ,pa=0)
+    return ThreadedModel(
+        Equatorial(
+            (θ.m_d),
+            (θ.spin),
+            (θ.θo),
+            (θ.rpeak),
+            (θ.p1),
+            (θ.p2),
+            (θ.χ),
+            (θ.ι),
+            (θ.βv),
+            (θ.σ),
+            (θ.x0),
+            (θ.y0),
+            (pa)
+
+        )
+    )
+end
+
+function dual_cone_temp_threaded(θ,pa=0)
+    return ThreadedModel(
+        JuKeBOX(
+            (θ.m_d),
+            (θ.spin),
+            (θ.θo),
+            (θ.θs),
+            (θ.rpeak),
+            (θ.p1),
+            (θ.p2),
+            (θ.χ),
+            (θ.ι),
+            (θ.βv),
+            (θ.σ),
+            (θ.η),
+            (θ.x0),
+            (θ.y0),
+            pa
+        )
+    )
+end
+
+function eq_dual_cone_temp_threaded(θ,pa=0)
+    return ThreadedModel(
+        EqDualCone(
+            (θ.m_d),
+            (θ.spin),
+            (θ.θo),
+            (θ.θs),
+            (θ.r_cone),
+            (θ.p1_cone),
+            (θ.p2_cone),
+            (θ.χ_cone),
+            (θ.ι_cone),
+            (θ.βv_cone),
+            (θ.spec_cone),
+            (θ.η_cone),
+            (θ.r_disk),
+            (θ.p1_disk),
+            (θ.p2_disk),
+            (θ.χ_disk),
+            (θ.ι_disk),
+            (θ.βv_disk),
+            (θ.spec_disk),
+            (θ.η_disk),
+            (θ.rJ),
+            (θ.xtrans),
+            (θ.ytrans),
+            pa
         )
     )
 end
 
 function create_eq_blur_model(blur)
-    return θ -> GPUBlurModel(
+    return (θ) -> GPUBlurModel(
         Equatorial(
             Float32(θ.m_d),
             Float32(θ.spin),
@@ -145,13 +223,14 @@ function create_eq_blur_model(blur)
             Float32(θ.βv),
             Float32(θ.σ),
             Float32(θ.x0),
-            Float32(θ.y0)
+            Float32(θ.y0),
+            0f0
         ), blur
     )
 end
 
 function create_dual_cone_blur_model(blur)
-    return θ -> GPUBlurModel(
+    return (θ) -> GPUBlurModel(
         JuKeBOX(
             Float32(θ.m_d),
             Float32(θ.spin),
@@ -166,13 +245,14 @@ function create_dual_cone_blur_model(blur)
             Float32(θ.σ),
             Float32(θ.η),
             Float32(θ.x0),
-            Float32(θ.y0)
+            Float32(θ.y0),
+            Float32(0f0)
         ), blur
     )
 end
 
 function create_eq_dual_cone_blur_model(blur)
-    return θ -> GPUBlurModel(
+    return (θ) -> GPUBlurModel(
         EqDualCone(
             Float32(θ.m_d),
             Float32(θ.spin),
@@ -196,7 +276,8 @@ function create_eq_dual_cone_blur_model(blur)
             Float32(θ.η_disk),
             Float32(θ.rJ),
             Float32(θ.xtrans),
-            Float32(θ.ytrans)
+            Float32(θ.ytrans),
+            0f0
         ), blur
     )
 end
