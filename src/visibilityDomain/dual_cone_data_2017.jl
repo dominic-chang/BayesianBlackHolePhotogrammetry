@@ -1,13 +1,14 @@
-include((@__DIR__)*"/dual_cone_data_2017_preamble.jl")
+preamble_path = joinpath((@__DIR__),"dual_cone_data_2017_preamble.jl")
+include(preamble_path)
 
 using Pigeons 
 
 settings = Pigeons.MPISettings(;
 submission_system=:slurm, 
 add_to_submission = [
-    "#SBATCH -p blackhole",
+    "#SBATCH -p wholenode",
     ], 
-    environment_modules=["intel/23.2.0-fasrc01","intelmpi/2021.10.0-fasrc01"]
+    environment_modules=["intel/19.0.5.281","impi/2019.5.281"]
 )
 Pigeons.setup_mpi(settings)
 
@@ -19,11 +20,12 @@ pt = Pigeons.pigeons(
     n_chains=n_tempering_levels, 
     on = Pigeons.MPIProcesses(
         n_mpi_processes = n_tempering_levels,
-        n_threads = 48,
+    	walltime="01:00:00",
+        n_threads = 12,
         dependencies = [
             Pigeons, # <- Pigeons itself can be skipped, added automatically
-            (@__DIR__)*"/DualCone_Data_2017_preamble.jl"
+	    preamble_path
         ]
     ),
-    n_rounds=18
+    n_rounds=14
 )

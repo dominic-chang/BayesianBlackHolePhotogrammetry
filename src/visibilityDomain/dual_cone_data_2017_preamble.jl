@@ -8,7 +8,7 @@ using Krang
 include((@__DIR__)*"/../models/JuKeBOX.jl")
 
 sze = 180
-n_tempering_levels = 20
+n_tempering_levels = 18
 modelfov = 120
 seed = 4
 fractional_noise = 0.01
@@ -62,4 +62,4 @@ log_prior = Pigeons.DistributionLogPotential(cprior)
 cprsample = rand(cprior)
 prsample = transform(cpost, cprsample)
 model = dualcone(prsample, metadat)
-model |> Plots.plot
+#model |> Plots.plot
