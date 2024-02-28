@@ -1,4 +1,5 @@
 import CairoMakie as CMk
+import GMT
 using Comrade
 using PythonCall
 using Meshes
@@ -54,14 +55,53 @@ model = models[1]
 inimg = ehtim.image.load_fits(joinpath((@__DIR__) , "..","..","..","data","GRMHD", "$model.fits"))
 pyconvert(Vector{Float64}, inimg.imvec)
 np = pyimport("numpy")
+X2d, Z2d, emission_data = collect.(PyArray.(np.load(joinpath((@__DIR__) , "..","..","..","data","GRMHD", "$model.npy"), allow_pickle=true)))
+intvals = vec(reshape(emission_data, (1, length(emission_data))))
+data = vec([(Float32(xv), Float32(yv)) for (xv, yv) in zip(vec(X2d), vec(Z2d))])
+grid = SimpleMesh(data, GridTopology(size(emission_data)))
+max(intvals...)
 
 function doublePower(rs, p1, p2)
     return r -> (r/rs)^(p1) / (1 + (r/rs)^(p1+p2))
 end
 
-fig = CMk.Figure(resolution=(995, 660), figure_padding=1);
+X2d_back, Z2d_back, emission_data_back = collect.(PyArray.(np.load(abspath(joinpath(dirname(@__DIR__),"..","..","data","GRMHD", "$(models[3]).npy")), allow_pickle=true)))
+intvals_back = vec(reshape(emission_data_back, (1, length(emission_data_back))))
+val = max(intvals_back...)
+intvals_back =map(x-> x < val ? 0 : x, intvals_back)
+data = vec([(Float32(xv), Float32(yv)) for (xv, yv) in zip(vec(X2d_back), vec(Z2d_back))])
+grid = SimpleMesh(data, GridTopology(size(emission_data_back)))
+plt=CMk.plot(grid,color=intvals_back, colorscheme=:grays, rasterize=true);
+CMk.xlims!(plt.axis, 0, 20)
+CMk.ylims!(plt.axis, -6, 6)
+display(plt)
+fig = CMk.Figure(resolution=(1030, 855), figure_padding=1);
 for (i, model) in enumerate(models)
+#(i, model) = (1,models[1])
     np = pyimport("numpy")
+    X2d, Z2d, emission_data = collect.(PyArray.(np.load(abspath(joinpath(dirname(@__DIR__),"..","..","data","GRMHD", "$model.npy")), allow_pickle=true)))
+    #intvals = vec(reshape(emission_data, (1, length(emission_data))))
+    #data = vec([(Float32(xv), Float32(yv)) for (xv, yv) in zip(vec(X2d), vec(Z2d))])
+    #grid = SimpleMesh(data, GridTopology(size(emission_data)))
+
+    ax = CMk.Axis(fig[5, i], aspect=1.5)
+    CMk.xlims!(ax, 0, 20)
+    CMk.ylims!(ax, -6, 6)
+    plt = CMk.plot!(ax, grid, color=intvals_back, colorscheme=:grays, rasterize=true)
+    (h, w) = size(X2d)
+    intvals = emission_data#vcat(hcat(emission_data, zeros(h - 1)), zeros(w)')
+    if i > 2
+        intvals = vcat(hcat(emission_data, zeros(h - 1)), zeros(w)')
+    end
+    CMk.tricontourf!(ax, vec(X2d), vec(Z2d), vec(intvals), mode=:relative, levels=1e-4:0.1:1.2, colormap=:grays, rasterize=true)
+
+    CMk.translate!(CMk.text!(ax, 9.0, 3.5, text=LaTeXString("Emissivity"), color=:white), 0, 0, 100)
+    if i == 1
+        lm = CMk.linesegments!(ax, [10.5, 12.5], [-3.5, -3.5], color=:white)
+        tm = CMk.text!(ax, 9, -3.6, text=CMk.L"2 GM/c^2", align=(:left, :top), color=:white)
+        CMk.translate!(lm, 0,0, 100)
+        CMk.translate!(tm, 0,0, 100)
+    end
 
     inimg = ehtim.image.load_fits(joinpath((@__DIR__) , "..","..","..","data","GRMHD", "$model.fits"))
     inimg = inimg.rotate((180 + 108) / 180 * π)
@@ -73,32 +113,17 @@ for (i, model) in enumerate(models)
     if i == 1
         CMk.linesegments!(ax1, [20, 187], [150, 150], color=:white)
         CMk.text!(ax1, 485, 360, text=CMk.L"\text{MAD}", align=(:left, :top), color=:white)
-        CMk.text!(ax1, 485, 320, text=CMk.L"R_{\text{high}}=20", align=(:left, :top), color=:white)
-        CMk.text!(ax1, 485, 270, text=CMk.L"\theta_o=17^\circ", align=(:left, :top), color=:white)
-        CMk.text!(ax1, 485, 220, text=CMk.L"a=0.5", align=(:left, :top), color=:white)
-        CMk.text!(ax1, 485, 170, text=CMk.L"\theta_g=3.83\;\mu\text{as}", align=(:left, :top), color=:white)
-        CMk.text!(ax1, 135, 140, text=CMk.L"40\,\mu as", align=(:left, :top), color=:white)
-    elseif i == 2
-        CMk.text!(ax1, 485, 360, text=CMk.L"\text{SANE}", align=(:left, :top), color=:white)
-        CMk.text!(ax1, 485, 320, text=CMk.L"R_{\text{high}}=160", align=(:left, :top), color=:white)
-        CMk.text!(ax1, 485, 270, text=CMk.L"\theta_o=17^\circ", align=(:left, :top), color=:white)
-        CMk.text!(ax1, 485, 220, text=CMk.L"a=0.5", align=(:left, :top), color=:white)
-        CMk.text!(ax1, 485, 170, text=CMk.L"\theta_g=3.83 \mu\text{as}", align=(:left, :top), color=:white)
-    elseif i == 3
-        CMk.linesegments!(ax1, [20, 187], [150, 150], color=:white)
-        CMk.text!(ax1, 485, 360, text=CMk.L"\text{MAD}", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 320, text=CMk.L"R_{\text{high}}=10", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 270, text=CMk.L"\theta_o=17^\circ", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 220, text=CMk.L"a=0.94", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 170, text=CMk.L"\theta_g=3.83\;\mu\text{as}", align=(:left, :top), color=:white)
         CMk.text!(ax1, 135, 140, text=CMk.L"40\,\mu as", align=(:left, :top), color=:white)
-    elseif i == 4
+    else
         CMk.text!(ax1, 485, 360, text=CMk.L"\text{SANE}", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 320, text=CMk.L"R_{\text{high}}=160", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 270, text=CMk.L"\theta_o=17^\circ", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 220, text=CMk.L"a=0.94", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 170, text=CMk.L"\theta_g=3.83 \mu\text{as}", align=(:left, :top), color=:white)
-
     end
     
 
@@ -125,6 +150,7 @@ for (i, model) in enumerate(models)
     xvals = sin(θs) .* (1.25:30)
     yvals = cos(θs) .* (1.25:30)
     colorvals = prof.(sqrt.(xvals .^ 2 .+ yvals .^ 2))
+    CMk.lines!(ax, xvals, yvals, color=colorvals, colormap=oranges)
 
     # Plot best fit curve DualCone
     lines = readlines(abspath(joinpath(dirname(@__DIR__), ".." , "..", "runs", "image_domain","$model.fits","JBOX","best_nxcorr.txt")))
@@ -149,6 +175,11 @@ for (i, model) in enumerate(models)
     xvals = sin(θs) .* (1.25:30)
     yvals = cos(θs) .* (1.25:30)
     colorvals = prof.(sqrt.(xvals .^ 2 .+ yvals .^ 2))
+    CMk.lines!(ax, xvals, yvals, color=colorvals, colormap=blues)
+    xvals = sin(π - θs) .* (1.25:30)
+    yvals = cos(π - θs) .* (1.25:30)
+    colorvals = prof.(sqrt.(xvals .^ 2 .+ yvals .^ 2))
+    CMk.lines!(ax, xvals, yvals, color=colorvals, colormap=blues)
 
     # Plot best fit curve EqDualCone
     lines = readlines(abspath(joinpath(dirname(@__DIR__), ".." , "..", "runs", "image_domain","$model.fits","EqDualCone","best_nxcorr.txt")))
@@ -173,10 +204,23 @@ for (i, model) in enumerate(models)
     xvals = sin(θs) .* (1.25:20)
     yvals = cos(θs) .* (1.25:20)
     colorvals = prof.(sqrt.(xvals .^ 2 .+ yvals .^ 2))
+    CMk.lines!(ax, xvals, yvals, color=colorvals, colormap=reds)
+    xvals = sin(π - θs) .* (1.25:20)
+    yvals = cos(π - θs) .* (1.25:20)
+    colorvals = prof.(sqrt.(xvals .^ 2 .+ yvals .^ 2))
+    CMk.lines!(ax, xvals, yvals, color=colorvals, colormap=reds)
 
 end
+colors = [orange_cb, blue_cb, red_cb]
+elements = [:line, :line, :line]
+model_markers = [CMk.LineElement(color = color,
+	strokecolor = :transparent,
+	markersize = 20) for (color, element) in zip(colors, elements)]
+model_labels = [L"\text{Equatorial}", L"\text{Dual Cone}", L"\text{Combination}"]
+CMk.Legend(fig[5,1:4], model_markers, model_labels, valign = :bottom, halign = :right, labelsize=20)
+#CMk.rowgap!(fig.layout, 2, CMk.Fixed(1))
 CMk.colgap!(fig.layout, CMk.Fixed(0.1))
 CMk.rowgap!(fig.layout, CMk.Fixed(0.1))
 display(fig)
 
-CMk.save((@__DIR__) * "/m87_nxcorr_summary.pdf", fig)
+CMk.save((@__DIR__) * "/emissivity_full.pdf", fig)
