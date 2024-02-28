@@ -2,44 +2,28 @@ include((@__DIR__)*"/dual_cone_data_2017_preamble.jl")
 
 using Pigeons 
 
+settings = Pigeons.MPISettings(;
+submission_system=:slurm, 
+add_to_submission = [
+    "#SBATCH -p blackhole",
+    ], 
+    environment_modules=["intel/23.2.0-fasrc01","intelmpi/2021.10.0-fasrc01"]
+)
+Pigeons.setup_mpi(settings)
+
 pt = Pigeons.pigeons(
     target=log_posterior, 
     reference=log_prior; 
     record = [traces, round_trip, Pigeons.timing_extrema], 
     checkpoint=true, 
     n_chains=n_tempering_levels, 
-    n_rounds=16
+    on = Pigeons.MPIProcesses(
+        n_mpi_processes = n_tempering_levels,
+        n_threads = 48,
+        dependencies = [
+            Pigeons, # <- Pigeons itself can be skipped, added automatically
+            (@__DIR__)*"/DualCone_Data_2017_preamble.jl"
+        ]
+    ),
+    n_rounds=18
 )
-using MCMCChains
-using CairoMakie
-using PairPlots
-
-samples = Chains(sample_array(pt), variable_names(pt))
-transform(cpost, vec(samples.value[1,:,:]))
-outchains = map(x->collect(transform(cpost,x)), [vec(samples.value[i,:,:]) for i in 1:1024])
-tchains = reshape(transpose(hcat(outchains...)), (4096,24,1))
-samples.value
-#pairplot(keys(prior), samples.value)
-pairplot(Chains(tchains, [i for i in keys(prior)]))
-#sample(post,)
-out_chains = Chains(tchains, [i for i in keys(prior)])
-# Save a chain.
-outpath = abspath((@__DIR__)*"/../runs/visibilityDomain/data6/m872017")
-mkpath(outpath)
-using Serialization
-serialize(outpath*"/chain-file.jls", out_chains)
-
-key_names = Tuple([i for i in keys(prior)])
-peak_posterior = NamedTuple{key_names}(out_chains.value[end,:,:])
-model = eqdualcone(peak_posterior, metadata)
-Plots.plot(model)#comrade.intensitymap(zeros(sze, sze), g)
-
-size(out_chains.value)
-rand((1:size(out_chains.value)[1]))
-rand_posterior = NamedTuple{key_names}(out_chains.value[rand((1:size(out_chains.value)[1])),:,:])
-model = eqdualcone(rand_posterior, metadata)
-Plots.plot(smoothed(model, μas2rad(10)))#comrade.intensitymap(zeros(sze, sze), g)
-
-
-Plots.plot(model)#comrade.intensitymap(zeros(sze, sze), g)
-Comrade.save(model,outpath*"/temp.fits")

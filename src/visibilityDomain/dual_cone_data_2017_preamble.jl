@@ -2,8 +2,9 @@ using Comrade
 using Pyehtim
 using Plots
 using Pigeons
-#using LinearAlgebra; LinearAlgebra.BLAS.set_num_threads(1)
-#using FFTW; FFTW.set_num_threads(1)
+using LinearAlgebra; LinearAlgebra.BLAS.set_num_threads(1)
+using FFTW; FFTW.set_num_threads(1)
+using Krang
 include((@__DIR__)*"/../models/JuKeBOX.jl")
 
 sze = 180
@@ -23,7 +24,7 @@ function dualcone(θ, metadata)
     return Comrade.modelimage(rotated(stretched(model, μas2rad(θ.m_d), μas2rad(θ.m_d)), θ.pa), cache, true)
 end
 
-obs = ehtim.obsdata.load_uvfits((@__DIR__)*"/../../data/2017/SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits")
+obs = ehtim.obsdata.load_uvfits(joinpath((@__DIR__),"..","..","data","2017","SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits"))
 obs = scan_average(obs.flag_uvdist(uv_min=0.1e9))
 obs = obs.add_fractional_noise(0.01)
 dlcamp = extract_table(obs, LogClosureAmplitudes())
@@ -31,7 +32,7 @@ dcphase = extract_table(obs, ClosurePhases())
 
 using Distributions
 prior = (;
-    m_d = Uniform(3.0, 5.0),
+    m_d = Uniform(1.5, 8.0),
     spin = Uniform(-1,-0.01),
     θo =Uniform(1/180*π, 40/180*π),
     θs =Uniform(40/180*π, 90/180*π),
@@ -49,7 +50,6 @@ cache = create_cache(NFFTAlg(dlcamp), IntensityMap(zeros(sze, sze), (μas2rad(mo
 metadat = (nmax=nmax, cache=cache)
 lklhd = RadioLikelihood(dualcone, dlcamp, dcphase ;skymeta=metadat)
 
-
 using VLBIImagePriors
 ndim = length(prior) # gets diminsions of parameter space
 pprior = VLBIImagePriors.NamedDist(prior)
@@ -62,4 +62,4 @@ log_prior = Pigeons.DistributionLogPotential(cprior)
 cprsample = rand(cprior)
 prsample = transform(cpost, cprsample)
 model = dualcone(prsample, metadat)
-#model |> Plots.plot
+model |> Plots.plot
