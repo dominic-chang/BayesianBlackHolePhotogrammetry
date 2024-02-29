@@ -106,15 +106,15 @@ end
 indir = joinpath((@__DIR__) , "..", "..","..","runs", "image_domain") |> abspath
 directory_names = filter(x -> occursin("M_a", x), readdir(indir))
 inclinations = map(x -> x[end-1:end], directory_names)
-models = ["EqBlur", "JBOXBlur", "EqDualConeBlur"]#, "EqDualConeBlur"]
+models = ["EqBlur", "EqDualConeBlur", "JBOXBlur"]#, "EqDualConeBlur"]
+
 
 nxcorr_vals = Dict([model => Vector{Float64}() for model in models])
 
 for (inc, dir) in zip(inclinations, directory_names)
 	for model in models
 		f = open(joinpath(indir, dir, model, "best_nxcorr.txt"))
-
-		append!(nxcorr_vals[model], [parse(Float64, readline(f)[begin+9:end])])
+		append!(nxcorr_vals[model], [parse(Float64, match(r"0[.][0-9]*",readline(f)).match)])
 		close(f)
 	end
 end
@@ -134,8 +134,7 @@ ylims!(ax, (0.9605, 1.001))
 
 colors = [red_cb, blue_cb, orange_cb]#, :blue]
 elements = [:circle, :rect, :utriangle]
-model_names = reverse(collect(keys(nxcorr_vals)))
-for (color, model, element) in zip(colors, model_names, elements)
+for (color, model, element) in zip(colors, models, elements)
 	scatter!(ax, nxcorr_vals[model], color = color, marker = element)
 end
 model_markers = [MarkerElement(marker = element, color = color,
