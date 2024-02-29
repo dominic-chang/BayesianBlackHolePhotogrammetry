@@ -1,5 +1,4 @@
 import CairoMakie as CMk
-import GMT
 using Comrade
 using PythonCall
 using Meshes
@@ -110,14 +109,27 @@ for (i, model) in enumerate(models)
     CMk.ylims!(ax1, 83, 416)
     CMk.heatmap!(ax1, reshape(pyconvert(Vector{Float64}, inimg.imvec), (500, 500)), colormap=:afmhot, rasterize=true)
     tm = CMk.text!(ax1, 485, 400, text=CMk.L"\text{GRMHD (truth)}", align=(:left, :top), color=:white)
+
     if i == 1
         CMk.linesegments!(ax1, [20, 187], [150, 150], color=:white)
+        CMk.text!(ax1, 485, 360, text=CMk.L"\text{MAD}", align=(:left, :top), color=:white)
+        CMk.text!(ax1, 485, 320, text=CMk.L"R_{\text{high}}=20", align=(:left, :top), color=:white)
+        CMk.text!(ax1, 485, 270, text=CMk.L"\theta_o=17^\circ", align=(:left, :top), color=:white)
+        CMk.text!(ax1, 485, 220, text=CMk.L"a=0.5", align=(:left, :top), color=:white)
+        CMk.text!(ax1, 485, 170, text=CMk.L"\theta_g=3.83\;\mu\text{as}", align=(:left, :top), color=:white)
+        CMk.text!(ax1, 135, 140, text=CMk.L"40\,\mu as", align=(:left, :top), color=:white)
+    elseif i == 2
+        CMk.text!(ax1, 485, 360, text=CMk.L"\text{SANE}", align=(:left, :top), color=:white)
+        CMk.text!(ax1, 485, 320, text=CMk.L"R_{\text{high}}=160", align=(:left, :top), color=:white)
+        CMk.text!(ax1, 485, 270, text=CMk.L"\theta_o=17^\circ", align=(:left, :top), color=:white)
+        CMk.text!(ax1, 485, 220, text=CMk.L"a=0.5", align=(:left, :top), color=:white)
+        CMk.text!(ax1, 485, 170, text=CMk.L"\theta_g=3.83 \mu\text{as}", align=(:left, :top), color=:white)
+    elseif i == 3
         CMk.text!(ax1, 485, 360, text=CMk.L"\text{MAD}", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 320, text=CMk.L"R_{\text{high}}=10", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 270, text=CMk.L"\theta_o=17^\circ", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 220, text=CMk.L"a=0.94", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 170, text=CMk.L"\theta_g=3.83\;\mu\text{as}", align=(:left, :top), color=:white)
-        CMk.text!(ax1, 135, 140, text=CMk.L"40\,\mu as", align=(:left, :top), color=:white)
     else
         CMk.text!(ax1, 485, 360, text=CMk.L"\text{SANE}", align=(:left, :top), color=:white)
         CMk.text!(ax1, 485, 320, text=CMk.L"R_{\text{high}}=160", align=(:left, :top), color=:white)
