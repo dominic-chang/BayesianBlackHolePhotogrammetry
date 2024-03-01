@@ -91,12 +91,12 @@ pairplot(
     PairPlots.Truth(
         true_vals,
         color=:black,
-        linewidth=5.5,
+        linewidth=8.0,
     ),
     PairPlots.Truth(
         nxcorr_vals[[:m_d, :spin, :θo, :θs, :rpeak]],
         color=red_cb,
-        linewidth=5.5,
+        linewidth=4.0,
     ),
     axis=(;
         m_d=(;
