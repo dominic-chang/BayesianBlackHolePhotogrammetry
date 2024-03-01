@@ -11,8 +11,7 @@ using ColorSchemes
 using FileIO
 using Krang
 using Serialization
-#LinearAlgebra.BLAS.set_num_threads(1);
-include(abspath((@__DIR__) * "/../models/JuKeBOX.jl"))
+include(joinpath(dirname(@__DIR__) , "..", "models", "JuKeBOX.jl"))
 
 red_cb = colorant"rgba(84%, 11%, 38%, 1.0)";
 blue_cb = colorant"rgba(12%, 53%, 89%, 0.5)";
@@ -20,20 +19,21 @@ orange_cb = colorant"rgba(100%, 75%, 3%, 1.0)";
 green_cb = colorant"rgba(0%, 30%, 25%, 1.0)"
 
 model_name = "Data_2017"
-in_base = abspath(dirname(@__DIR__), "visibilityDomain","results","all","2024-02-28-18-42-34-cCiPdnMc")
+in_base = abspath(dirname(@__DIR__), "..", "visibilityDomain","results","all","2024-01-31-23-56-33-MmVVnfWg")
 include(joinpath(in_base, "model_params.jl"))
-#in_chains = deserialize(abspath(outpath * "/../$(model)/chain-file.jls"))
-outpath = abspath(dirname(@__DIR__) , "..","..","..","runs","visibilityDomain","data","$(model)")
+outpath = abspath(dirname(@__DIR__), ".." , "..","..","..","runs","visibilityDomain","data","$(model)")
 #pt = PT(in_base)
 #s_array = sample_array(pt)
-rnd = 3
+rnd = 16
 reduced_recorders = Serialization.deserialize(joinpath(in_base, "round=$rnd", "checkpoint", "reduced_recorders.jls"))
-s_array = hcat([reduced_recorders.traces[n_tempering_levels=>i] for i in 1:2^rnd]...)'[:,1:end-1]
+s_array = hcat([reduced_recorders.traces[n_tempering_levels=>i] for i in 1:2^rnd]...)'[:,1:end]
 
 Plots.scatter(s_array[:, 1, :])
-param_file = open(abspath(dirname(@__DIR__), "..","runs","image_domain","sa+0.94_r160_nall_tavg.fits", "JBOX", "best_nxcorr.txt"))
-[readline(param_file) for _ in 1:3]
-best_fit = eval(Meta.parse(readline(param_file)[12:end]))
+best_fit = begin
+    param_file = open(abspath(dirname(@__DIR__), "..", "..","runs","image_domain","sa+0.94_r160_nall_tavg.fits", "JBOX", "best_nxcorr.txt"))
+    [readline(param_file) for _ in 1:3]
+    eval(Meta.parse(readline(param_file)[12:end]))
+end
 
 nxcorr_vals = (best_fit..., pa=360-72)
 true_vals = (m_d=3.83, spin=-0.94, θo=17 / 180 * π, pa=360 - 72)
@@ -85,22 +85,21 @@ theme_curr = Theme(
 
 set_theme!(merge(theme_curr, theme_latexfonts()))
 samples_to_plot = samples_to_plot
-#chains_to_plot = in_chains[[:m_d, :spin, :θo, :pa]]
 using Clustering
 
-clusters = kmeans(samples_to_plot.value[:,1:12:13,1]', 3)
-mode1 = samples_to_plot[clusters.assignments .== 1, :, :]
-mode2 = samples_to_plot[clusters.assignments .== 2, :, :]
-mode3 = samples_to_plot[clusters.assignments .== 3, :, :]
+clusters = kmeans(tsamples.value[:,1:12:13,1]', 3)
+mode1 = tsamples[clusters.assignments .== 1, :, :]
+mode2 = tsamples[clusters.assignments .== 2, :, :]
+mode3 = tsamples[clusters.assignments .== 3, :, :]
 fig = Figure();
 ax = Axis(fig[1,1]);
 CairoMakie.scatter!(ax, mode1.value[:,1:12:13,1])
 CairoMakie.scatter!(ax, mode2.value[:,1:12:13,1])
 CairoMakie.scatter!(ax, mode3.value[:,1:12:13,1])
 
-hpdi1 = hpd(mode1)#.nt
-hpdi2 = hpd(mode2)#.nt
-hpdi3 = hpd(mode3)#.nt
+hpdi1 = hpd(mode1)
+hpdi2 = hpd(mode2)
+hpdi3 = hpd(mode3)
 
 display(fig)
 
@@ -125,16 +124,9 @@ gs = GridLayout(plt[1:6, 1:6])
 begin
     pairplot(gs,
         samples_to_plot => (
-            #PairPlots.HexBin(),
-            PairPlots.Scatter(color=blue_cb, markersize=0.5, rasterize = true),#color = :blue),
-            #PairPlots.MarginStepHist(color=:black),
+            PairPlots.Scatter(color=blue_cb, markersize=0.5, rasterize = true),
             PairPlots.Contour(color=:black, rasterize = true),
             MarginMakieHist(; bins=10, color=blue_cb, rasterize = true)
-            #	#color=:x,
-            #	colormap=blue_in_blue,
-            #	colorrange=intervals,
-            #	#color = :black
-            #),
         ),
         PairPlots.Truth(
             (;
@@ -193,8 +185,6 @@ begin
             ),
             pa=(;
                 lims=(; low=180, high=360),
-                #lims=(;low=prior.pa.a, high=prior.pa.b)
-                #lims=(; low=0, high=180),
                 ticks=([200, 250, 300, 350]),
             ),
             rpeak=(;
@@ -214,8 +204,6 @@ begin
                 ticks=([-120, 0, 120]),
             ),
             ι=(;
-                #lims=(; low=prior.ι.a*180/π, high=prior.ι.b*180/π),
-                #ticks=([-60, 0, 60]),
                 lims=(; low=0*180/π, high=prior.ι.b*180/π),
                 ticks=([0,30, 60]),
             ),
@@ -225,20 +213,13 @@ begin
             ),
             spec=(;
                 lims=(; low=prior.spec.a, high=prior.spec.b),
-                #ticks=([0, 0.45, 0.9]),
             ),
-            #cross_spec=(;
-            #    lims=(; low=prior.cross_spec.a, high=prior.cross_spec.b),
-            #    ticks=([0, 0.45, 0.9]),
-            #),
             η=(;
                 lims=(; low=prior.η.a*180/π, high=prior.η.b*180/π),
-                #ticks=([0, 0.45, 0.9]),
             ),),
-        labels=Dict(:m_d => L"\theta_g", :spin => L"a", :θo => L"\theta_o", :pa => L"p.a.", :rpeak => L"R", :θs => L"\theta_s", :p1 => L"p_1", :p2 => L"p_2", :χ => L"χ", :ι => L"ι", :βv => L"β_v", :spec => L"\sigma", :cross_spec => L"\sigma_{\zeta}", :η => L"η"),
+        labels=Dict(:m_d => L"\theta_g", :spin => L"a", :θo => L"\theta_o", :pa => L"p.a.", :rpeak => L"R", :θs => L"\theta_s", :p1 => L"p_1", :p2 => L"p_2", :χ => L"χ", :ι => L"ι", :βv => L"β_v", :spec => L"\sigma", :η => L"η"),
     )
     histax = Axis(
-        #gs[1:6,8:13], 
         plt[1:3,3:6],
         aspect=1, 
         yticksvisible=false, 
@@ -250,9 +231,7 @@ begin
         xlabel=L"θ_g",
         height=Relative(0.75),
         width=Relative(0.75),
-        #halign=1.0,
         valign=1.0
-        #xticksmirrored=true,
         )
     CairoMakie.hist!(histax,[samples_to_plot[:m_d]...], bins=10)
     vlines!(histax, [3.83], color=:black, linewidth=5, linestyle=:dash)
@@ -290,8 +269,6 @@ display(plt)
 line_ax = Axis(plt[1:6, 1:6],
     width=Relative(1.0),
     height=Relative(1.0),
-    #halign=0.557,
-    #valign=1.0,
 );
 CairoMakie.xlims!(line_ax, 0, 13)
 CairoMakie.ylims!(line_ax, 0, 13)
@@ -314,7 +291,6 @@ lines!(
     );
 
 display(plt)
-
 
 save((@__DIR__) * "/$(model_name)_full_posterior.pdf", plt)
 
