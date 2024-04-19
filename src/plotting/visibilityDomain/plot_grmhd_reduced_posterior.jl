@@ -172,8 +172,8 @@ pairplot(
         #PairPlots.HexBin(color=blue_cb, rasterize = true),
         #PairPlots.HexBin(colormap=CairoMakie.Makie.cgrad([white_cb_t, blue_cb]), rasterize=true),
         #PairPlots.Contour(color=:black, bandwidth=2.0, rasterize = true),
-        PairPlots.Contourf(color=blue_cb_t1, rasterize = true),
-        MarginMakieHist(; bins=10, color=blue_cb_t, bandwidth=3.0, strokecolor=:black, rasterize = true),
+        PairPlots.Contourf(color=blue_cb_t1, bandwidth=3.0, rasterize = true),
+        MarginMakieHist(; bins=10, color=blue_cb_t, strokecolor=:black, rasterize = true),
     ),
     cluster2 => (
         #PairPlots.Scatter(color=orange_cb, rasterize = true),

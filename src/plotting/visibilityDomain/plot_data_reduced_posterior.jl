@@ -105,9 +105,8 @@ plt = Figure(resolution=(1150, 1150));
 gs = GridLayout(plt[1:6, 1:6])
 pairplot(gs,
     samples_to_plot => (
-        PairPlots.Scatter(color=blue_cb, rasterize = true),
-        PairPlots.Contour(color=:black, rasterize = true),
-        MarginMakieHist(; bins=10, color=blue_cb, rasterize = true)
+        PairPlots.Contourf(color=blue_cb_t1, bandwidth=3.0, rasterize = true),
+        MarginMakieHist(; bins=10, color=blue_cb_t, strokecolor=:black, rasterize = true),
     ),
     PairPlots.Truth(
         (;
@@ -229,7 +228,7 @@ CairoMakie.heatmap!(
     ax,
     smoothedintmap,
     colormap=:afmhot,
-    colorrange=(0, 5.35e-4), 
+    colorrange=(0, 0.9e-4), 
     rasterize=true
 )
 CairoMakie.xlims!(ax, 350, 50)

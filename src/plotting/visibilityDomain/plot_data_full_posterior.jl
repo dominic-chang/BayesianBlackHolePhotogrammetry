@@ -14,8 +14,13 @@ using Serialization
 include(joinpath(dirname(@__DIR__) , "..", "models", "JuKeBOX.jl"))
 
 red_cb = colorant"rgba(84%, 11%, 38%, 1.0)";
-blue_cb = colorant"rgba(12%, 53%, 89%, 0.5)";
+blue_cb = colorant"rgba(12%, 53%, 89%, 1.0)";
 orange_cb = colorant"rgba(100%, 75%, 3%, 1.0)";
+blue_cb_t = colorant"rgba(12%, 53%, 89%, 0.5)";
+orange_cb_t = colorant"rgba(100%, 75%, 3%, 0.5)";
+blue_cb_t1 = colorant"rgba(12%, 53%, 89%, 0.25)";
+orange_cb_t1 = colorant"rgba(100%, 75%, 3%, 0.25)";
+white_cb_t = colorant"rgba(100%, 100%, 100%, 0.5)";
 green_cb = colorant"rgba(0%, 30%, 25%, 1.0)"
 
 model_name = "Data_2017"
@@ -124,9 +129,8 @@ gs = GridLayout(plt[1:6, 1:6])
 begin
     pairplot(gs,
         samples_to_plot => (
-            PairPlots.Scatter(color=blue_cb, markersize=0.5, rasterize = true),
-            PairPlots.Contour(color=:black, rasterize = true),
-            MarginMakieHist(; bins=10, color=blue_cb, rasterize = true)
+            PairPlots.Contourf(color=blue_cb_t1, bandwidth=3.0, rasterize = true),
+            MarginMakieHist(; bins=10, color=blue_cb_t, strokecolor=:black, rasterize = true),
         ),
         PairPlots.Truth(
             (;
