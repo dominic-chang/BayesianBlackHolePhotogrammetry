@@ -12,8 +12,13 @@ using Krang
 include(joinpath(dirname(@__DIR__) , "..", "models", "JuKeBOX.jl"))
 
 red_cb = colorant"rgba(84%, 11%, 38%, 1.0)";
-blue_cb = colorant"rgba(12%, 53%, 89%, 0.5)";
+blue_cb = colorant"rgba(12%, 53%, 89%, 1.0)";
 orange_cb = colorant"rgba(100%, 75%, 3%, 1.0)";
+blue_cb_t = colorant"rgba(12%, 53%, 89%, 0.5)";
+orange_cb_t = colorant"rgba(100%, 75%, 3%, 0.5)";
+blue_cb_t1 = colorant"rgba(12%, 53%, 89%, 0.25)";
+orange_cb_t1 = colorant"rgba(100%, 75%, 3%, 0.25)";
+white_cb_t = colorant"rgba(100%, 100%, 100%, 0.5)";
 green_cb = colorant"rgba(0%, 30%, 25%, 1.0)"
 
 model_name = "sa+0.94_r160_GRMHD"
@@ -84,9 +89,9 @@ gs = GridLayout(plt[1:6, 1:6])
 pairplot(
     gs,
     samples_to_plot => (
-        PairPlots.Contour(color=:black, rasterize = true),
         PairPlots.Scatter(color=blue_cb, rasterize = true),#strokecolor = :black),
         MarginMakieHist(; bins=10, color=blue_cb, strokecolor=:black, rasterize = true),
+        PairPlots.Contour(color=:black, bandwidth=2.0,rasterize = true),
     ),
     PairPlots.Truth(
         true_vals,
@@ -145,5 +150,125 @@ Legend(gs[4, 6],
 colgap!(gs, 0)
 rowgap!(gs, 0)
 display(plt)
+
+using Clustering
+clusters = Clustering.kmeans(samples_to_plot.value[:,1:2,1]', 2)
+cluster1 = samples_to_plot[clusters.assignments .== 1, :, :]
+cluster2 = samples_to_plot[clusters.assignments .== 2, :, :]
+fig = Figure();
+ax = Axis(fig[1,1])
+CairoMakie.scatter!(ax, cluster1.value[:,1:2,1])
+CairoMakie.scatter!(ax, cluster2.value[:,1:2,1])
+display(fig)
+hpd(cluster1)
+hpd(cluster2)
+
+plt = Figure(resolution=(1150, 1150));
+gs = GridLayout(plt[1:6, 1:6])
+pairplot(
+    gs,
+    cluster1 => (
+        #PairPlots.Scatter(color=blue_cb, rasterize = true),
+        #PairPlots.HexBin(color=blue_cb, rasterize = true),
+        #PairPlots.HexBin(colormap=CairoMakie.Makie.cgrad([white_cb_t, blue_cb]), rasterize=true),
+        #PairPlots.Contour(color=:black, bandwidth=2.0, rasterize = true),
+        PairPlots.Contourf(color=blue_cb_t1, rasterize = true),
+        MarginMakieHist(; bins=10, color=blue_cb_t, bandwidth=3.0, strokecolor=:black, rasterize = true),
+    ),
+    cluster2 => (
+        #PairPlots.Scatter(color=orange_cb, rasterize = true),
+        #PairPlots.HexBin(colormap=CairoMakie.Makie.cgrad([white_cb_t, orange_cb]), rasterize=true),
+        #PairPlots.Contour(color=:black, bandwidth=2.0, rasterize = true),
+        PairPlots.Contourf(color=orange_cb_t1, bandwidth=3.0, rasterize = true),
+        MarginMakieHist(; bins=10, color=orange_cb_t, strokecolor=:black, rasterize = true),
+    ),
+    PairPlots.Truth(
+        true_vals,
+        color=:black,
+        linewidth=8.0,
+    ),
+    PairPlots.Truth(
+        nxcorr_vals[[:m_d, :spin, :θo, :θs, :rpeak]],
+        color=red_cb,
+        linewidth=3.0,
+    ),
+    axis=(;
+        m_d=(;
+            ticks=([2.0, 4.0, 6.0]),
+            lims=(; low=prior.m_d.a, high=prior.m_d.b),
+        ),
+        spin=(;
+            ticks=([-0.85, -0.45, -0.05]),
+            lims=(; low=prior.spin.a, high=prior.spin.b),
+        ),
+        θo=(;
+            lims=(; low=prior.θo.a*180/π, high=prior.θo.b*180/π),
+            ticks=([10, 20, 30]),
+        ),
+        θs=(;
+            lims=(; low=prior.θs.a*180/π, high=prior.θs.b*180/π),
+            ticks=([50, 60, 70,80]),
+        ),
+        pa=(;
+            lims=(; low=180, high=360),
+            ticks=([200, 250, 300, 350]),
+        ),
+        rpeak=(;
+            lims=(; low=prior.rpeak.a, high=prior.rpeak.b),
+            ticks=([5, 10, 15]),
+        ),
+        p1=(;
+            lims=(; low=prior.p1.a, high=prior.p1.b),
+            ticks=([2, 4, 6, 8]),
+        ),
+        p2=(;
+            lims=(; low=prior.p2.a, high=prior.p2.b),
+            ticks=([2, 4, 6, 8]),
+        ),
+        χ=(;
+            lims=(; low=prior.χ.a*180/π, high=prior.χ.b*180/π),
+        ),
+        ι=(;
+            lims=(; low=0*180/π, high=prior.ι.b*180/π),
+            ticks=([0, 30, 60]),
+
+        ),
+        βv=(;
+            lims=(; low=prior.βv.a, high=prior.βv.b),
+            ticks=([0.1, 0.40, 0.8]),
+        ),
+        spec=(;
+            lims=(; low=prior.spec.a, high=prior.spec.b),
+            ticks=([1, 2, 3]),
+        ),
+        η=(;
+            lims=(; low=prior.η.a*180/π, high=prior.η.b*180/π),
+            ticks=([-150, -75, 0, 75, 150]),
+        ),
+
+    ),
+    labels=Dict(:m_d => L"\theta_g", :spin => L"a", :θo => L"\theta_o", :pa => L"p.a.", :rpeak => L"R", :θs => L"\theta_s", :p1 => L"p_1", :p2 => L"p_2", :χ => L"χ", :ι => L"ι", :βv => L"β_v", :spec => L"\sigma", :η => L"η"), 
+);
+label_models = [L"\textit{m}\text{F-ring}", L"\text{xs-ringauss}", L"\text{Hybrid Themage}"]
+markers = [
+    LineElement(color=:black, linestyle=:solid, linewidth=5),
+    LineElement(color=red_cb, linestyle=:solid, linewidth=5),
+]
+labels = [L"\text{Truth}", L"\text{NxCORR Best Fit}"]
+
+Legend(gs[4, 6],
+    labelsize=33,
+    [markers,],
+    [labels,],
+    [nothing,],
+    tellheight=false,
+    tellwidth=false,
+    margin=(10, 10, 10, 10),
+    halign=:right, valign=:bottom, orientation=:vertical,
+)
+colgap!(gs, 0)
+rowgap!(gs, 0)
+display(plt)
+
 
 save(joinpath((@__DIR__), "$(model_name)_reduced_posterior.pdf"), plt)
