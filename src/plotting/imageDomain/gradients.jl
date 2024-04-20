@@ -18,6 +18,7 @@ function dualcone(θ, metadata)
     return Comrade.modelimage(rotated(stretched(model, μas2rad(θ.m_d), μas2rad(θ.m_d)), 0.0), cache, true)
 end
 metadat = (nmax = 2, cache=Comrade.create_cache(FFTAlg(), IntensityMap(zeros(100,100), μas2rad(120), μas2rad(120))))
+best_fit = NamedTuple{map(x-> x == :σ ? :spec : x, keys(best_fit))}(values(best_fit))
 m = dualcone(best_fit, metadat)
 
 grid = imagepixels(μas2rad(120), μas2rad(120), 100, 100)
@@ -26,8 +27,8 @@ img = intensitymap(m, grid)
 img |> Plots.plot
 rimg = zero(img)
 dimg = zero(img)
-function point(m_d, spin, θo, θs, rpeak, p1, p2, χ, ι, βv, σ, η, X)
-    best_fit = (m_d=m_d, spin=spin, θo=θo, θs=θs, rpeak=rpeak, p1=p1, p2=p2, χ=χ, ι=ι, βv=βv, σ=σ, η=η)
+function point(m_d, spin, θo, θs, rpeak, p1, p2, χ, ι, βv, spec, η, X)
+    best_fit = (m_d=m_d, spin=spin, θo=θo, θs=θs, rpeak=rpeak, p1=p1, p2=p2, χ=χ, ι=ι, βv=βv, spec=spec, η=η)
     model = dualcone(best_fit, (nmax=1,))
     return ComradeBase.intensity_point(model, (X=X[1], Y=X[2]))
 end
@@ -99,7 +100,7 @@ CairoMakie.text!(ax, -100, -110, text="Dual Cone", align=(:right,:bottom), justi
 CairoMakie.arrows!(ax, [0,], [0,], [0,], [70,], color=:white, linewidth=3, arrowsize=20)
 
 
-label_names = (m_d=L"m_d", spin=L"a", θo=L"θ_o", θs=L"θ_s", rpeak=L"R", p1=L"p_1", p2=L"p_2", χ=L"\chi", ι=L"\iota", βv=L"β_v", σ=L"\sigma", η=L"\eta")
+label_names = (m_d=L"m_d", spin=L"a", θo=L"θ_o", θs=L"θ_s", rpeak=L"R", p1=L"p_1", p2=L"p_2", χ=L"\chi", ι=L"\iota", βv=L"β_v", spec=L"\sigma", η=L"\eta")
 for I in LinearIndices(axs)
     CairoMakie.heatmap!(axs[I], range(-fovxy,fovxy, length=npix), range(-fovxy/2,fovxy/2, length=npix), reverse(grads[I,:,:]',dims=1), xlims=(-fovxy,fovxy), colormap=:viridis)
     lstring = "\$\\left|\\frac{\\partial P_{ij}}{\\partial "*label_names[keys(best_fit)[I]].s[2:end-1]*"}\\right|\$"
@@ -117,7 +118,7 @@ axlab = Axis(fig[5,2:5], aspect=10)
 hidedecorations!(axlab)
 CairoMakie.xlims!(axlab, 0, 1)
 CairoMakie.ylims!(axlab, 0, 1)
-CairoMakie.text!(axlab, 0.5, 0.5, text=L"\text{Magntiude of Image Derivatives }\left(|\partial P_{ij}/\partial\theta|\right)",color=:black, justificaton=:center, align= (:center, :center))
+CairoMakie.text!(axlab, 0.5, 0.5, text=L"\text{Magnitude of Image Derivatives }\left(|\partial P_{ij}/\partial\theta|\right)",color=:black, justificaton=:center, align= (:center, :center))
 
 lax = Axis(fig[0:5, 1:2], aspect=0.1, xticksvisible=false, yticksvisible=false, xticklabelsvisible=false, yticklabelsvisible=false)
 hidedecorations!(lax)
