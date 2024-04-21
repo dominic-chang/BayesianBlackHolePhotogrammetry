@@ -27,9 +27,7 @@ function dualcone(θ, metadata)
 end
 inbase = abspath(dirname(@__DIR__), "..", "data")
 obsin = ehtim.obsdata.load_uvfits(joinpath(inbase, "2017", "SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits"))
-#inimg = ehtim.image.load_image(joinpath(inbase, "GRMHD", "snapshots", "image_ma+0.5_1000_163_40_nall.h5"))
-inimg = ehtim.image.load_image(joinpath(inbase, "GRMHD", "snapshots", "image_ma+0.5_1320_163_10_nall.h5"))
-#inimg = ehtim.image.load_image(joinpath(inbase, "GRMHD", "snapshots", "image_sa+0.94_975_163_160_nall.h5"))
+inimg = ehtim.image.load_image(joinpath(dirname(inbase), "runs", "image_domain", "sa+0.94_r160_nall_tavg.fits", "JBOX", "best.fits"))
 inimg.rf = obsin.rf
 inimg.ra = obsin.ra
 inimg.dec = obsin.dec
@@ -37,12 +35,7 @@ inimg = inimg.rotate(rotate_fits)
 obs = inimg.observe_same(obsin, ampcal=ampcal, phasecal=phasecal, add_th_noise=add_th_noise, seed=seed, ttype="fast")
 obs = scan_average(obs.flag_uvdist(uv_min=0.1e9))
 obs = obs.add_fractional_noise(fractional_noise)
-#inobs = inobs.flag_uvdist(1e9)
-#inobs = inobs.avg_coherent(0.0, scan_avg=scan_avg).add_fractional_noise(fractional_noise) # add 1% fractional systematic error
 
-#obs = ehtim.obsdata.load_uvfits(joinpath((@__DIR__),"..","..","data","2017","SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits"))
-#obs = scan_average(obs.flag_uvdist(uv_min=0.1e9))
-#obs = obs.add_fractional_noise(0.01)
 dlcamp = extract_table(obs, LogClosureAmplitudes())
 dcphase = extract_table(obs, ClosurePhases())
 

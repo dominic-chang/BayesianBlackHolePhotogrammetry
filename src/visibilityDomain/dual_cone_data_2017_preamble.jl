@@ -5,7 +5,7 @@ using Pigeons
 using LinearAlgebra; LinearAlgebra.BLAS.set_num_threads(1)
 using FFTW; FFTW.set_num_threads(1)
 using Krang
-include((@__DIR__)*"/../models/JuKeBOX.jl")
+include(joinpath(dirname(@__DIR__), "models", "JuKeBOX.jl"))
 
 sze = 180
 n_tempering_levels = 18
