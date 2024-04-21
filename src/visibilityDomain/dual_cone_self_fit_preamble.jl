@@ -7,26 +7,35 @@ using FFTW; FFTW.set_num_threads(1)
 using Krang
 include(joinpath(dirname(@__DIR__), "models", "JuKeBOX.jl"))
 
-sze = 180
-n_tempering_levels = 18
-modelfov = 120
+sze = 50
+n_tempering_levels = 24
+modelfov = 100
 seed = 4
 fractional_noise = 0.01
+rotate_fits = 108/180*π
 phasecal = true
 ampcal = true
 add_th_noise = true
 scan_avg = true
-nmax = 1
+nmax = 2
 
 function dualcone(θ, metadata)
     (;nmax, cache) = metadata
     model = JuKeBOX(nmax, θ)
-    return Comrade.modelimage(rotated(stretched(model, μas2rad(θ.m_d), μas2rad(θ.m_d)), θ.pa), cache, true)
+    mdl = Comrade.modelimage(rotated(stretched(model, μas2rad(θ.m_d), μas2rad(θ.m_d)), θ.pa), cache, true)
+    return mdl /flux(mdl)
 end
-
-obs = ehtim.obsdata.load_uvfits(joinpath((@__DIR__),"..","..","data","2017","SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits"))
+inbase = abspath(dirname(@__DIR__), "..", "data")
+obsin = ehtim.obsdata.load_uvfits(joinpath(inbase, "2017", "SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits"))
+inimg = ehtim.image.load_image(joinpath(dirname(inbase), "runs", "image_domain", "sa+0.94_r160_nall_tavg.fits", "JBOX", "best.fits"))
+inimg.rf = obsin.rf
+inimg.ra = obsin.ra
+inimg.dec = obsin.dec
+inimg = inimg.rotate(rotate_fits)
+obs = inimg.observe_same(obsin, ampcal=ampcal, phasecal=phasecal, add_th_noise=add_th_noise, seed=seed, ttype="fast")
 obs = scan_average(obs.flag_uvdist(uv_min=0.1e9))
-obs = obs.add_fractional_noise(0.01)
+obs = obs.add_fractional_noise(fractional_noise)
+
 dlcamp = extract_table(obs, LogClosureAmplitudes())
 dcphase = extract_table(obs, ClosurePhases())
 
@@ -36,7 +45,7 @@ prior = (;
     spin = Uniform(-1,-0.01),
     θo =Uniform(1/180*π, 40/180*π),
     θs =Uniform(40/180*π, 90/180*π),
-    pa = Uniform(-π, π),
+    pa = Uniform(-π, 0),
     rpeak= Uniform(1., 10.),
     p1 = Uniform(0.1, 10),
     p2 = Uniform(1, 10),
@@ -44,7 +53,7 @@ prior = (;
     ι = Uniform(0.0, π/2),
     βv = Uniform(0.0 ,0.99),
     spec = Uniform(-1.,3.),
-    η = Uniform(0,π),
+    η = Uniform(-π,π),
 )
 cache = create_cache(NFFTAlg(dlcamp), IntensityMap(zeros(sze, sze), (μas2rad(modelfov)), (μas2rad(modelfov))))
 metadat = (nmax=nmax, cache=cache)
@@ -55,7 +64,7 @@ ndim = length(prior) # gets diminsions of parameter space
 pprior = VLBIImagePriors.NamedDist(prior)
 post = Posterior(lklhd, pprior)
 cpost = ascube(post)
-log_posterior = Comrade.logdensityof(cpost)
+log_posterior = cpost
 cprior= Distributions.product_distribution(fill(Uniform(), ndim))
 log_prior = Pigeons.DistributionLogPotential(cprior)
 
