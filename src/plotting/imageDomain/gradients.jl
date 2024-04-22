@@ -100,7 +100,7 @@ CairoMakie.text!(ax, -100, -110, text="Dual Cone", align=(:right,:bottom), justi
 CairoMakie.arrows!(ax, [0,], [0,], [0,], [70,], color=:white, linewidth=3, arrowsize=20)
 
 
-label_names = (m_d=L"m_d", spin=L"a", θo=L"θ_o", θs=L"θ_s", rpeak=L"R", p1=L"p_1", p2=L"p_2", χ=L"\chi", ι=L"\iota", βv=L"β_v", spec=L"\sigma", η=L"\eta")
+label_names = (m_d=L"\theta_g", spin=L"a", θo=L"\theta_o", θs=L"\theta_s", rpeak=L"R", p1=L"p_1", p2=L"p_2", χ=L"\chi", ι=L"\iota", βv=L"β_v", spec=L"\sigma", η=L"\eta")
 for I in LinearIndices(axs)
     CairoMakie.heatmap!(axs[I], range(-fovxy,fovxy, length=npix), range(-fovxy/2,fovxy/2, length=npix), reverse(grads[I,:,:]',dims=1), xlims=(-fovxy,fovxy), colormap=:viridis)
     lstring = "\$\\left|\\frac{\\partial P_{ij}}{\\partial "*label_names[keys(best_fit)[I]].s[2:end-1]*"}\\right|\$"
