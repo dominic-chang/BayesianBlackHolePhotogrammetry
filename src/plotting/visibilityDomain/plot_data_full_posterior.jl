@@ -298,3 +298,24 @@ display(plt)
 
 save((@__DIR__) * "/$(model_name)_full_posterior.pdf", plt)
 
+
+using StatsBase
+# The fitted rpeak isn't the real rpeak. Here we use the samples to calculate statistics on the real rpeak
+rsamples = collect(samples_to_plot[:rpeak])[:,1]
+p1samples = collect(samples_to_plot[:p1])[:,1]
+p2samples = collect(samples_to_plot[:p2])[:,1]
+hist_R = StatsBase.fit(Distributions.Histogram, rsamples)
+hist_p1 = StatsBase.fit(Distributions.Histogram, p1samples)
+hist_p2 = StatsBase.fit(Distributions.Histogram, p2samples)
+Plots.plot(hist_R)
+Plots.plot(hist_p1)
+Plots.plot(hist_p2)
+
+function peak_radius(R, p1, p2)
+    return R*(p2/p1)^(1/(p1+p2))
+
+end
+
+rpeak_samples = Chains([peak_radius(rand(rsamples), rand(p1samples), rand(p2samples)) for _ in 1:3length(rsamples)], [:rpeak,])
+hpd(rpeak_samples)
+
