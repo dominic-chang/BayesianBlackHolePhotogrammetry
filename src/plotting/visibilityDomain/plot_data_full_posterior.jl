@@ -55,10 +55,11 @@ samples_to_plot= begin
     for sym in [:pa, :ι, :χ, :η, :θo, :θs]
         if sym == :pa
             temp[:, indexin([sym,], prior_keys)[1]] .= (360 .+ temp[:, indexin([sym,], prior_keys)[1]] .* 180 / π  ) .% 360
+        elseif sym == :ι # The distribution is symmetric in ι
+            temp[:, indexin([sym,], prior_keys)[1]] .= abs.(temp[:, indexin([sym,], prior_keys)[1]]) .* 180 / π  
         else
             temp[:, indexin([sym,], prior_keys)[1]] .= temp[:, indexin([sym,], prior_keys)[1]] .* 180 / π  
         end
-
     end
     Chains(temp, prior_keys)
 end
@@ -217,6 +218,7 @@ begin
             ),
             spec=(;
                 lims=(; low=prior.spec.a, high=prior.spec.b),
+                ticks=([0, 1, 2, 3, 4]),
             ),
             η=(;
                 lims=(; low=prior.η.a*180/π, high=prior.η.b*180/π),
@@ -316,6 +318,7 @@ function peak_radius(R, p1, p2)
 
 end
 
-rpeak_samples = Chains([peak_radius(rand(rsamples), rand(p1samples), rand(p2samples)) for _ in 1:3length(rsamples)], [:rpeak,])
+rpeak_samples = Chains(peak_radius.(rsamples, p1samples, p2samples) , [:rpeak,])
 hpd(rpeak_samples)
+Plots.plot(StatsBase.fit(Distributions.Histogram, rpeak_samples.value[:,1,1]))   
 

@@ -43,7 +43,7 @@ prior = (;
     χ = Uniform(-π, π),
     ι = Uniform(0.0, π/2),
     βv = Uniform(0.0 ,0.99),
-    spec = Uniform(-1.,3.),
+    spec = Uniform(-1.,5.),
     η = Uniform(0,π),
 )
 cache = create_cache(NFFTAlg(dlcamp), IntensityMap(zeros(sze, sze), (μas2rad(modelfov)), (μas2rad(modelfov))))
