@@ -8,7 +8,7 @@ using Krang
 include(joinpath(dirname(@__DIR__), "models", "JuKeBOX.jl"))
 
 sze = 50
-n_tempering_levels = 24
+n_tempering_levels = 16
 modelfov = 100
 seed = 4
 fractional_noise = 0.01
@@ -17,7 +17,7 @@ phasecal = true
 ampcal = true
 add_th_noise = true
 scan_avg = true
-nmax = 2
+nmax = 1
 
 function dualcone(θ, metadata)
     (;nmax, cache) = metadata
@@ -27,7 +27,9 @@ function dualcone(θ, metadata)
 end
 inbase = abspath(dirname(@__DIR__), "..", "data")
 obsin = ehtim.obsdata.load_uvfits(joinpath(inbase, "2017", "SR1_M87_2017_096_lo_hops_netcal_StokesI.uvfits"))
+grmhdimg = inimg = ehtim.image.load_image(joinpath(inbase, "GRMHD", "sa+0.94_r160_nall_tavg.fits"))
 inimg = ehtim.image.load_image(joinpath(dirname(inbase), "runs", "image_domain", "sa+0.94_r160_nall_tavg.fits", "JBOX", "best.fits"))
+inimg.imvec = inimg.imvec * sum(grmhdimg.imvec)/sum(inimg.imvec)
 inimg.rf = obsin.rf
 inimg.ra = obsin.ra
 inimg.dec = obsin.dec
@@ -46,13 +48,13 @@ prior = (;
     θo =Uniform(1/180*π, 40/180*π),
     θs =Uniform(40/180*π, 90/180*π),
     pa = Uniform(-π, 0),
-    rpeak= Uniform(1., 10.),
+    rpeak= Uniform(1., 18.),
     p1 = Uniform(0.1, 10),
     p2 = Uniform(1, 10),
     χ = Uniform(-π, π),
     ι = Uniform(0.0, π/2),
     βv = Uniform(0.0 ,0.99),
-    spec = Uniform(-1.,3.),
+    spec = Uniform(-1.,5.),
     η = Uniform(-π,π),
 )
 cache = create_cache(NFFTAlg(dlcamp), IntensityMap(zeros(sze, sze), (μas2rad(modelfov)), (μas2rad(modelfov))))
