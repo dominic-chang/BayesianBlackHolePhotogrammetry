@@ -42,7 +42,7 @@ nxcorr_vals = begin
     b_f_keys = keys(best_fit)[begin:end-2]
     NamedTuple{replace(b_f_keys, :σ=>:spec)}(map(x-> x ∈ (:θo, :θs, :χ, :ι, :η) ? best_fit[x]*180/π : best_fit[x], b_f_keys))
 end
-true_vals = (m_d=3.83, spin=-0.94, θo=17 / 180, pa=360 - 72)
+true_vals = (m_d=3.83, spin=-0.94, θo=17 , pa=360 - 72)
 prior_keys = collect(keys(prior))
 samples = Chains(s_array, collect(prior_keys))
 tsamples = Chains(reshape(hcat(collect.(map(x -> values(transform(cpost, x)), [samples.value[i, :] for i in 1:size(samples.value)[1]]))...)', size(samples.value)), collect(prior_keys))
@@ -251,11 +251,17 @@ pairplot(
 );
 label_models = [L"\textit{m}\text{F-ring}", L"\text{xs-ringauss}", L"\text{Hybrid Themage}"]
 markers = [
+    PolyElement(color = blue_cb, strokewidth = 1),    
+    PolyElement(color = orange_cb, strokewidth = 1),   
     LineElement(color=:black, linestyle=:solid, linewidth=5),
     LineElement(color=red_cb, linestyle=:solid, linewidth=5),
 ]
-labels = [L"\text{Truth}", L"\text{NxCORR Best Fit}"]
-
+labels = [
+    L"\text{Cluster 1}",
+    L"\text{Cluster 2}",
+    L"\text{Truth}", 
+    L"\text{NxCORR Best Fit}"
+   ]
 Legend(gs[4, 6],
     labelsize=33,
     [markers,],

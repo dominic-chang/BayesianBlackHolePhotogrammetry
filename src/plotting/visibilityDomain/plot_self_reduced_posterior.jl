@@ -233,11 +233,18 @@ pairplot(
 );
 label_models = [L"\textit{m}\text{F-ring}", L"\text{xs-ringauss}", L"\text{Hybrid Themage}"]
 markers = [
+    PolyElement(color = blue_cb, strokewidth = 1),    
+    PolyElement(color = orange_cb, strokewidth = 1),   
     LineElement(color=:black, linestyle=:solid, linewidth=5),
+    #LineElement(color=red_cb, linestyle=:solid, linewidth=5),
 ]
-labels = [L"\text{Truth}", ]
+labels = [
+    L"\text{Cluster 1}",
+    L"\text{Cluster 2}",
+    L"\text{Truth}", 
+    ]#L"\text{NxCORR Best Fit}"]
 
-Legend(gs[4, 5],
+Legend(gs[4, 6],
     labelsize=33,
     [markers,],
     [labels,],

@@ -80,7 +80,7 @@ curr_theme = Theme(
         ),
     Heatmap = (
         colormap=:afmhot,
-        rasterize=false
+        rasterize=true
     )
 )
 CairoMakie.set_theme!(merge(curr_theme, theme_latexfonts()))

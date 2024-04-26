@@ -38,14 +38,14 @@ add_to_submission = [
 )
 Pigeons.setup_mpi(settings)
 
-#pt = PT(abspath(dirname(@__DIR__), ".." ,"results", "latest"))
+#pt = PT(abspath(@__DIR__ ,"results", "all", "Mad_Snapshot_2"))
 #pt = increment_n_rounds!(pt, 4)
 #
 #result = pigeons(pt.exec_folder, 
 #    on = Pigeons.MPIProcesses(
 #        n_mpi_processes = n_tempering_levels,
 #    	walltime="10-00:00:00",
-#        n_threads = 48,
+#        n_threads = 24,
 #        dependencies = [
 #            Pigeons, # <- Pigeons itself can be skipped, added automatically
 #	    preamble_path
