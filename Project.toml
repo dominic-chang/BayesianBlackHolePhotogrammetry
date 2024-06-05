@@ -43,6 +43,10 @@ WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
 
 [compat]
 julia = "1"
+Pigeons = "0.4"
+Comrade = "0.9"
+VIDA = "0.11"
+Pyehtim = "0.1"
 
 [extras]
 MPIPreferences = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
